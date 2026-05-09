@@ -53,9 +53,24 @@ def compute_edit_direction(
     # 2) 按均值差构造方向: Δc = E[c_target] - E[c_source]
     # 3) 输出 shape 为 [1, seq_len, hidden_dim]
 
+    # 1. 分别编码 source / target 句子集合
+    # pipe.get_embeds 返回形状通常为 [1, seq_len, hidden_dim]
     source_embeds = pipe.get_embeds(source_sentences)
     target_embeds = pipe.get_embeds(target_sentences)
-    return (target_embeds.mean(0) - source_embeds.mean(0)).unsqueeze(0)
+    
+    # 2. 按均值差构造方向
+    # 虽然 get_embeds 内部可能已经做了 mean，但为了确保逻辑正确性：
+    # 如果返回的是 [1, L, D]，mean(0) 会变成 [L, D]，再 unsqueeze(0) 变回 [1, L, D]
+    # 如果返回的是 [N, L, D] (N>1)，则必须 mean(0)
+    # 这里采用通用写法：
+    edit_direction = target_embeds.mean(0) - source_embeds.mean(0)
+    
+    # 3. 确保输出 shape 为 [1, seq_len, hidden_dim]
+    # 如果 mean(0) 后是 [L, D]，unsqueeze(0) 变为 [1, L, D]
+    if edit_direction.dim() == 2:
+        edit_direction = edit_direction.unsqueeze(0)
+        
+    return edit_direction
     # ====== END TODO 1 ======
 
 
@@ -170,6 +185,10 @@ def edit_denoise(
 
     prompt_embeds_edit = prompt_embeds.clone()
     if do_cfg:
+        # 在有 CFG 的情况下，prompt_embeds 的形状是 [2, seq_len, hidden_dim]
+        # index 0 是 unconditional (negative prompt)
+        # index 1 是 conditional (positive prompt)
+        # 我们只修改 positive prompt 的部分
         prompt_embeds_edit[1:2] = prompt_embeds_edit[1:2] + edit_direction.to(prompt_embeds_edit.device)
     else:
         prompt_embeds_edit = prompt_embeds_edit + edit_direction.to(prompt_embeds_edit.device)
