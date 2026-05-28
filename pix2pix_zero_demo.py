@@ -19,6 +19,18 @@ def main() -> None:
         default="a photo of a cat",
         help="Prompt describing the input image (used for inversion & reference)",
     )
+    parser.add_argument(
+        "--source",
+        type=str,
+        required=True,
+        help="Source concept for the edit direction (e.g. cat, sunny, wooden)",
+    )
+    parser.add_argument(
+        "--target",
+        type=str,
+        required=True,
+        help="Target concept for the edit direction (e.g. dog, snowy, marble)",
+    )
     parser.add_argument("--model", type=str, default="stable-diffusion-v1-5/stable-diffusion-v1-5")
     parser.add_argument("--steps", type=int, default=50)
     parser.add_argument("--guidance-scale", type=float, default=7.5)
@@ -30,7 +42,7 @@ def main() -> None:
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    pipe = load_pipeline(args.model, torch_dtype=torch.float16 , device=device)
+    pipe = load_pipeline(args.model, torch_dtype=torch.float16, device=device)
 
     cfg = Pix2PixZeroConfig(
         model_id=args.model,
@@ -42,7 +54,7 @@ def main() -> None:
     )
 
     input_image = load_image_rgb(args.image)
-    source_sentences, target_sentences = create_sentences()
+    source_sentences, target_sentences = create_sentences(args.source, args.target)
 
     reconstruction, edited = run_demo(
         pipe=pipe,
