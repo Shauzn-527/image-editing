@@ -13,18 +13,14 @@ from pix2pix_zero_utils import load_image_rgb, make_row_grid, save_image
 def main() -> None:
     parser = argparse.ArgumentParser(description="Pix2Pix-Zero")
     parser.add_argument("--image", type=str, required=True, help="Path to input image")
-    parser.add_argument(
-        "--prompt",
-        type=str,
-        default="a photo of a cat",
-        help="Prompt describing the input image (used for inversion & reference)",
-    )
+    parser.add_argument("--prompt", type=str, default="a photo of a cat", help="Prompt describing the input image (used for inversion & reference)")
     parser.add_argument("--model", type=str, default="stable-diffusion-v1-5/stable-diffusion-v1-5")
     parser.add_argument("--steps", type=int, default=50)
     parser.add_argument("--guidance-scale", type=float, default=7.5)
     parser.add_argument("--xa-guidance", type=float, default=0.1, help="Cross-attention guidance step size")
     parser.add_argument("--seed", type=int, default=0)
-    parser.add_argument("--outdir", type=str, default="outputs/pix2pix_zero_demo")
+    parser.add_argument("--outdir", type=str, default="outputs")
+    parser.add_argument("--task", type=str, default="cat2dog", choices=["cat2dog"], help="cat2dog")
 
     args = parser.parse_args()
 

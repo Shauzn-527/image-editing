@@ -722,7 +722,7 @@ class StableDiffusionPix2PixZeroPipeline(DiffusionPipeline, StableDiffusionMixin
             input_ids = input_ids.to(self.text_encoder.device)
             embeds.append(self.text_encoder(input_ids)[0])
 
-        return torch.cat(embeds, dim=0).mean(0)[None]
+        return torch.cat(embeds, dim=0)
 
     def prepare_image_latents(self, image, batch_size, dtype, device, generator=None):
         if not isinstance(image, (torch.Tensor, PIL.Image.Image, list)):
